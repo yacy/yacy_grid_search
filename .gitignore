@@ -1,0 +1,10 @@
+classes/
+target/
+data/
+/class/
+/.gradle/
+/build/
+.DS_Store
+.settings
+.idea/
+
