@@ -19,6 +19,7 @@
 
 package net.yacy.grid.search;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +34,11 @@ import net.yacy.grid.mcp.Service;
 import net.yacy.grid.tools.GitTool;
 
 /**
- * The Loader main class
+ * The Search Client main class
+ * 
+ * You can search at the following API:
+ * http://localhost:8800/yacy/grid/mcp/index/yacysearch.json?query=*
+ * http://localhost:8800/yacy/grid/mcp/index/gsasearch.xml?q=*
  * 
  * performance debugging:
  * http://localhost:8200/yacy/grid/mcp/info/threaddump.txt
@@ -51,10 +56,19 @@ public class Search {
         Service.initEnvironment(SEARCH_SERVICE, services, DATA_PATH, false);
         Data.logger.getLoggerRepository().setThreshold(Level.INFO);
 
+        // find connection to MCP
+        try {
+            Data.gridIndex.checkConnection();
+            //ElasticsearchClient ec = Data.gridIndex.getElasticClient();
+            //Index gi = Data.gridIndex.getElasticIndex();
+        } catch (IOException e) {
+            Data.logger.fatal("no connection to MCP", e);
+        }
+
         // start server
         Data.logger.info("Search.main started Search");
         Data.logger.info(new GitTool().toString());
         Service.runService(null);
     }
-    
+
 }
