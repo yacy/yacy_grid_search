@@ -41,8 +41,8 @@ import net.yacy.grid.tools.GitTool;
  * http://localhost:8800/yacy/grid/mcp/index/gsasearch.xml?q=*
  * 
  * performance debugging:
- * http://localhost:8200/yacy/grid/mcp/info/threaddump.txt
- * http://localhost:8200/yacy/grid/mcp/info/threaddump.txt?count=100 *
+ * http://localhost:8800/yacy/grid/mcp/info/threaddump.txt
+ * http://localhost:8800/yacy/grid/mcp/info/threaddump.txt?count=100 *
  */
 public class Search {
 
@@ -55,15 +55,6 @@ public class Search {
         services.addAll(Arrays.asList(MCP.MCP_SERVICES)); // the search services are in the MCP services embedded
         Service.initEnvironment(SEARCH_SERVICE, services, DATA_PATH, false);
         Data.logger.getLoggerRepository().setThreshold(Level.INFO);
-
-        // find connection to MCP
-        try {
-            Data.gridIndex.checkConnection();
-            //ElasticsearchClient ec = Data.gridIndex.getElasticClient();
-            //Index gi = Data.gridIndex.getElasticIndex();
-        } catch (IOException e) {
-            Data.logger.fatal("no connection to MCP", e);
-        }
 
         // start server
         Data.logger.info("Search.main started Search");
