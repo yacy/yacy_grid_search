@@ -26,10 +26,10 @@ import java.util.List;
 import javax.servlet.Servlet;
 
 import net.yacy.grid.YaCyServices;
-import net.yacy.grid.mcp.Data;
 import net.yacy.grid.mcp.MCP;
 import net.yacy.grid.mcp.Service;
 import net.yacy.grid.tools.GitTool;
+import net.yacy.grid.tools.Logger;
 
 /**
  * The Search Client main class
@@ -54,8 +54,8 @@ public class Search {
         Service.initEnvironment(SEARCH_SERVICE, services, DATA_PATH, false);
 
         // start server
-        Data.logger.info("Search.main started Search");
-        Data.logger.info(new GitTool().toString());
+        Logger.info("Search.main started Search");
+        Logger.info(new GitTool().toString());
         Service.runService(null);
     }
 
