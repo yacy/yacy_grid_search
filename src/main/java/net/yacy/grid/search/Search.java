@@ -19,15 +19,14 @@
 
 package net.yacy.grid.search;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.Servlet;
+import java.util.Properties;
 
 import net.yacy.grid.YaCyServices;
+import net.yacy.grid.mcp.Configuration;
 import net.yacy.grid.mcp.MCP;
 import net.yacy.grid.mcp.Service;
+import net.yacy.grid.tools.CronBox;
+import net.yacy.grid.tools.CronBox.Telemetry;
 import net.yacy.grid.tools.GitTool;
 import net.yacy.grid.tools.Logger;
 
@@ -47,16 +46,73 @@ public class Search {
     private final static YaCyServices SEARCH_SERVICE = YaCyServices.aggregation; // check with http://localhost:8800/yacy/grid/mcp/status.json
     private final static String DATA_PATH = "data";
 
-    public static void main(String[] args) {
-        // initialize environment variables
-        List<Class<? extends Servlet>> services = new ArrayList<>();
-        services.addAll(Arrays.asList(MCP.MCP_SERVICES)); // the search services are in the MCP services embedded
-        Service.initEnvironment(SEARCH_SERVICE, services, DATA_PATH, false);
+    public static class Application implements CronBox.Application {
 
-        // start server
-        Logger.info("Search.main started Search");
+        final Configuration config;
+        final Service service;
+        final CronBox.Application serviceApplication;
+
+        public Application() {
+            Logger.info("Starting Search Application...");
+
+            // initialize configuration
+            this.config = new Configuration(DATA_PATH, true, SEARCH_SERVICE, MCP.MCP_SERVLETS);
+
+            // initialize REST server with services
+            this.service = new Service(this.config);
+
+            // connect backend
+            this.config.connectBackend();
+
+            // initiate service application: listening to REST request
+            this.serviceApplication = this.service.newServer(null);
+        }
+
+        @Override
+        public void run() {
+            // starting threads
+            this.serviceApplication.run(); // SIC! the service application is running as the core element of this run() process. If we run it concurrently, this runnable will be "dead".
+        }
+
+        @Override
+        public void stop() {
+            Logger.info("Stopping Search Application...");
+            this.serviceApplication.stop();
+            this.service.stop();
+            this.service.close();
+            this.config.close();
+        }
+
+        @Override
+        public Telemetry getTelemetry() {
+            return null;
+        }
+
+    }
+    public static void main(final String[] args) {
+        // run in headless mode
+        System.setProperty("java.awt.headless", "true"); // no awt used here so we can switch off that stuff
+
+        // prepare configuration
+        final Properties sysprops = System.getProperties(); // system properties
+        System.getenv().forEach((k,v) -> {
+            if (k.startsWith("YACYGRID_")) sysprops.put(k.substring(9).replace('_', '.'), v);
+        }); // add also environment variables
+
+        // first greeting
+        Logger.info("Search started!");
         Logger.info(new GitTool().toString());
-        Service.runService(null);
+        Logger.info("you can now search using the query api, i.e.:");
+        Logger.info("curl \"http://127.0.0.1:8800/yacy/grid/mcp/index/yacysearch.json?query=test\"");
+
+        // run application with cron
+        final long cycleDelay = Long.parseLong(System.getProperty("YACYGRID_SEARCH_CYCLEDELAY", "" + Long.MAX_VALUE)); // by default, run only in one genesis thread
+        final int cycleRandom = Integer.parseInt(System.getProperty("YACYGRID_SEARCH_CYCLERANDOM", "" + 1000 * 60 /*1 minute*/));
+        final CronBox cron = new CronBox(Application.class, cycleDelay, cycleRandom);
+        cron.cycle();
+
+        // this line is reached if the cron process was shut down
+        Logger.info("Search terminated");
     }
 
 }
