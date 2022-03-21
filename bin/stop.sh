@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+cd "`dirname $0`"
+cd ../data
+KILLFILE="aggregation-8800.kill"
+PIDFILE="aggregation-8800.pid"
+
+# first method to terminate the process
+if [ -f "$KILLFILE" ];
+then
+   rm $KILLFILE
+   echo "termination requested, waiting.."
+   # this can take a bit..
+   sleep 5
+fi
+
+# second method to terminate the process
+if [ -f "$PIDFILE" ];
+then
+   fuser -k $PIDFILE
+fi
+
+# check if file does not exist any more which would be a sign that this has terminated
+if [ ! -f "$PIDFILE" ];
+then
+   echo "process terminated"
+fi
+
