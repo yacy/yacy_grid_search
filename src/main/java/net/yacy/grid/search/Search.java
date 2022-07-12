@@ -25,7 +25,6 @@ import net.yacy.grid.mcp.MCP;
 import net.yacy.grid.mcp.Service;
 import net.yacy.grid.tools.CronBox;
 import net.yacy.grid.tools.CronBox.Telemetry;
-import net.yacy.grid.tools.GitTool;
 import net.yacy.grid.tools.Logger;
 
 /**
@@ -98,7 +97,6 @@ public class Search {
 
         // first greeting
         Logger.info("YaCy Grid Search started!");
-        Logger.info(new GitTool().toString());
         Logger.info("you can now search using the query api, i.e.:");
         Logger.info("curl \"http://127.0.0.1:8800/yacy/grid/mcp/index/yacysearch.json?query=test\"");
 
